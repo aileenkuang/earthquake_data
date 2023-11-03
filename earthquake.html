@@ -86,13 +86,14 @@
                 japan = await response.json()
             };
 
+            // Fetch earthquake and Japan data layers 
             geojsonFetch();
 
             map.on('load', function loadingData() {
 
                 map.addSource('earthquakes', {
                     type: 'geojson',
-                    data: earthquakes.geojson
+                    data: earthquakes
                 });
 
                 map.addLayer({
@@ -126,7 +127,7 @@
             table = document.getElementsByTagName("table")[0];
             let row, cell1, cell2, cell3;
             for (let i = 0; i < earthquakes.features.length; i++) {
-                row = table.insertTow(-1);
+                row = table.insertRow(-1);
                 cell1 = row.insertCell(0);
                 cell2 = row.insertCell(1);
                 cell3 = row.insertCell(2);
@@ -135,7 +136,7 @@
                 cell3.innerHTML = new Date(earthquakes.features[i].properties.time).toLocaleDateString("en-US");
             }
 
-            let btn = document.getElementsByTagName("button"[0]);
+            let btn = document.getElementsByTagName("button")[0];
 
             btn.addEventListener('click', sortTable);
 
