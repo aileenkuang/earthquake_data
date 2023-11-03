@@ -48,7 +48,6 @@
         tr:nth-child(even) {
             background-color: #f2f2f2;
         }
-
     </style>
     </head>
     <body>
@@ -93,13 +92,13 @@
 
                 map.addSource('earthquakes', {
                     type: 'geojson',
-                    data: earthquakes
+                    data: earthquakes.geojson
                 });
 
                 map.addLayer({
                     'id': 'earthquakes-layer',
                     'type': 'circle',
-                    'source': 'earthqyakes',
+                    'source': 'earthquakes',
                     'paint': {
                         'circle-radius': 8,
                         'circle-stroke-width': 2,
@@ -133,7 +132,7 @@
                 cell3 = row.insertCell(2);
                 cell1.innerHTML = earthquakes.features[i].properties.id;
                 cell2.innerHTML = earthquakes.features[i].properties.mag;
-                cell3.innerHTML = new Date(earthquakes.features[i].properties.time).toLocaleDateS("en-US");
+                cell3.innerHTML = new Date(earthquakes.features[i].properties.time).toLocaleDateString("en-US");
             }
 
             let btn = document.getElementsByTagName("button"[0]);
