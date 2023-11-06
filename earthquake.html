@@ -69,71 +69,83 @@
             <div id="map"></div>
         </main>
         <script>
-            mapboxgl.accessToken = 'pk.eyJ1IjoiYWlsZWVua3VhbmciLCJhIjoiY2xvaXo1d3puMWcwNjJucWUza3d3azM2MiJ9.xHwDHyC8yd2zSt_2eBs9eA'
 
-            let map = new mapboxgl.Map({
-                container: 'map',
-                style: 'mapbox://styles/mapbox/satellite-v9',
-                zoom: 5.5,
-                center: [138, 38]
-            })
-
+            let table, earthquakes, japan;
             async function geojsonFetch() {
-                let response, earthquakes, japan, table;
+                let response;
                 response = await fetch('assets/earthquakes.geojson')
                 earthquakes = await response.json()
                 response = await fetch('assets/japan.json')
                 japan = await response.json()
+
+                setupMap();
             };
 
-            geojsonFetch();
+            // Function for setting up map
+            function setupMap() {
+                mapboxgl.accessToken = 'pk.eyJ1IjoiYWlsZWVua3VhbmciLCJhIjoiY2xvaXo1d3puMWcwNjJucWUza3d3azM2MiJ9.xHwDHyC8yd2zSt_2eBs9eA'
 
-            map.on('load', function loadingData() {
-
-                map.addSource('earthquakes', {
-                    type: 'geojson',
-                    data: earthquakes
+                let map = new mapboxgl.Map({
+                    container: 'map',
+                    style: 'mapbox://styles/mapbox/satellite-v9',
+                    zoom: 5.5,
+                    center: [138, 38]
                 });
 
-                map.addLayer({
-                    'id': 'earthquakes-layer',
-                    'type': 'circle',
-                    'source': 'earthquakes',
-                    'paint': {
-                        'circle-radius': 8,
-                        'circle-stroke-width': 2,
-                        'circle-color': 'red',
-                        'circle-stroke-color': 'white'
-                    }
-                });
+                map.on('load', function loadingData() {
+                    
+                    map.addSource('earthquakes', {
+                        type: 'geojson',
+                        data: earthquakes
+                    });
+                    
+                    map.addLayer({
+                        'id': 'earthquakes-layer',
+                        'type': 'circle',
+                        'source': 'earthquakes',
+                        'paint': {
+                            'circle-radius': 8,
+                            'circle-stroke-width': 2,
+                            'circle-color': 'red',
+                            'circle-stroke-color': 'white'
+                        }
+                    });
+                    
+                    map.addSource('japan', {
+                        type: 'geojson',
+                        data: japan
+                    });
+                    
+                    map.addLayer({
+                        'id': 'japan-layer',
+                        'type': 'fill',
+                        'source': 'japan',
+                        'paint': {
+                            'fill-color': '#0080ff',
+                            'fill-opacity': 0.5
+                        }
+                    });
 
-                map.addSource('japan', {
-                    type: 'geojson',
-                    data: japan
+                    populateTable();
                 });
-
-                map.addLayer({
-                    'id': 'japan-layer',
-                    'type': 'fill',
-                    'source': 'japan',
-                    'paint': {
-                        'fill-color': '#0080ff',
-                        'fill-opacity': 0.5
-                    }
-                });
-            });
-
-            table = document.getElementsByTagName("table")[0];
-            let row, cell1, cell2, cell3;
-            for (let i = 0; i < earthquakes.features.length; i++) {
-                row = table.insertow(-1);
-                cell1 = row.insertCell(0);
-                cell2 = row.insertCell(1);
-                cell3 = row.insertCell(2);
-                cell1.innerHTML = earthquakes.features[i].properties.id;
-                cell2.innerHTML = earthquakes.features[i].properties.mag;
-                cell3.innerHTML = new Date(earthquakes.features[i].properties.time).toLocaleDateString("en-US");
             }
+
+            // Define function for populating table
+            function populateTable() {
+                table = document.getElementsByTagName("table")[0];
+                let row, cell1, cell2, cell3;
+                for (let i = 0; i < earthquakes.features.length; i++) {
+                    row = table.insertRow(-1);
+                    cell1 = row.insertCell(0);
+                    cell2 = row.insertCell(1);
+                    cell3 = row.insertCell(2);
+                    cell1.innerHTML = earthquakes.features[i].properties.id;
+                    cell2.innerHTML = earthquakes.features[i].properties.mag;
+                    cell3.innerHTML = new Date(earthquakes.features[i].properties.time).toLocaleDateString("en-US");
+                }
+            }
+
+            geojsonFetch();
 
             let btn = document.getElementsByTagName("button")[0];
 
