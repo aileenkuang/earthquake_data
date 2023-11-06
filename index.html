@@ -3,19 +3,127 @@
     
     <head>
         <meta charset="utf-8">
-        <title>Gentrification in Seattle</title>
+        <title>Hospitals v. Social Equity Index in Seattle</title>
         <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
         <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel=""stylesheet">
         <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
     <style>
+        body {
+            margin: 0.5em;
+            padding: 0;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+            flex-direction: row;
+            align-items: stretch;
+        }
+
+        #side-panel {
+            flex-basis: 500px;
+            overflow-y: scroll;
+        }
+
+        #map {
+            flex-grow: 1;
+        }
+
+        button {
+            margin-bottom: 10px;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 16px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
     </style>
     </head>
 
     <body>
-        <main>
+        <main id="container">
+            <div id="side-panel">
+
+                <h2>Social Equity Index</h2>
+                <button>Sort indices</button>
+
+                <table>
+                    <tr>
+                        <th>GEOID</th>
+                        <th>COMPOSITE_SCORE</th>
+                        <th>SOCIOECON_DISADV_SCORE</th>
+                    </tr>
+                </table>
+            </div>
+            <div id="map"></div>
         </main>
 
         <script>
+
+            let table, hospitals, index;
+            async function geojsonFetch() {
+                let response;
+                response = await fetch('assets/hospitals.geojson')
+                hospitals = await response.json()
+                response = await fetch('assets/seattle-equity-index.geojson')
+                index = await response.json()
+
+                setupMap();
+            };
+
+            function setupMap() {
+                mapboxgl.accessToken = ''
+                let map = new mapboxgl.Map({
+                    container: 'map',
+                    style: ''
+                    zoom: 4,
+                    center: []
+                });
+
+                map.on('load', function loadingData() {
+
+                    map.addSource('hospitals', {
+                        type: 'geojson',
+                        data: hospitals
+                    });
+
+                    map.addLayer({
+                        'id': 'hospitals layer',
+                        'type': 'circle',
+                        'source': 'hospitals',
+                        'paint': {
+                            'circle-radius': 8,
+                            'circle-stroke-width': 2,
+                            'circle-color': 'red',
+                            'circle-stroke-color': 'white'
+                        }
+                    });
+
+                    map.addSource('index', {
+                        type: 'geojson',
+                        data: index
+                    });
+
+                    map.addLayer({
+                    });
+
+                    populateTable();
+
+                })
+            }
+
         </script>
     </body>
 </html>
