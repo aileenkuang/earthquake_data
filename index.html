@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en-US">
-    
     <head>
         <meta charset="utf-8">
-        <title>Hospitals v. Social Equity Index in Seattle</title>
+        <title>Hospitals in Seattle</title>
         <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-        <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel=""stylesheet">
+        <link href="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.css" rel="stylesheet">
         <script src="https://api.mapbox.com/mapbox-gl-js/v2.5.0/mapbox-gl.js"></script>
+    
     <style>
         body {
-            margin: 0.5em;
+            margin: 1em;
             padding: 0;
         }
 
@@ -56,14 +56,14 @@
         <main id="container">
             <div id="side-panel">
 
-                <h2>Social Equity Index</h2>
-                <button>Sort indices</button>
+                <h2>Hospitals in Seattle</h2>
+                <button>Sort by acute care</button>
 
                 <table>
                     <tr>
-                        <th>GEOID</th>
-                        <th>COMPOSITE_SCORE</th>
-                        <th>SOCIOECON_DISADV_SCORE</th>
+                        <th>Facility</th>
+                        <th>Address</th>
+                        <th>Acute Care</th>
                     </tr>
                 </table>
             </div>
@@ -72,58 +72,113 @@
 
         <script>
 
-            let table, hospitals, index;
+            let table, hospitals, seattle;
             async function geojsonFetch() {
                 let response;
-                response = await fetch('assets/hospitals.geojson')
+                response = await fetch('assets/seattle-hospitals-new.geojson')
                 hospitals = await response.json()
-                response = await fetch('assets/seattle-equity-index.geojson')
-                index = await response.json()
-
+                response = await fetch('assets/city-limits.geojson')
+                seattle = await response.json()
+            
                 setupMap();
             };
 
             function setupMap() {
-                mapboxgl.accessToken = ''
+                
+                // Mapbox access token
+                mapboxgl.accessToken = 'pk.eyJ1IjoiYWlsZWVua3VhbmciLCJhIjoiY2xvb20xYjhlMDFhejJsbnUxZ2o5NmcxeCJ9.QKR4YpHv3dK_p7Vi0S1kxQ'
+                
+                // Create map container
                 let map = new mapboxgl.Map({
                     container: 'map',
-                    style: ''
-                    zoom: 4,
-                    center: []
+                    style: 'mapbox://styles/mapbox/streets-v11',
+                    zoom: 10.4,
+                    center: [-122.3, 47.6]
                 });
 
                 map.on('load', function loadingData() {
 
+                    // Add hospital data source 
                     map.addSource('hospitals', {
                         type: 'geojson',
                         data: hospitals
                     });
 
+                    // Add hospital layer
                     map.addLayer({
-                        'id': 'hospitals layer',
+                        'id': 'hospitals-layer',
                         'type': 'circle',
                         'source': 'hospitals',
+                        'circle-radius': 8,
+                        'circle-stroke-width': 2,
+                        'circle-color': 'black',
+                        'circle-stroke-color': 'black'
+                    });
+
+                    // Add Seattle data source
+                    map.addSource('seattle', {
+                        type: 'geojson',
+                        data: seattle
+                    });
+
+                    // Add Seattle layer
+                    map.addLayer({
+                        'id': 'seattle-layer',
+                        'type': 'fill',
+                        'source': 'seattle',
                         'paint': {
-                            'circle-radius': 8,
-                            'circle-stroke-width': 2,
-                            'circle-color': 'red',
-                            'circle-stroke-color': 'white'
+                            'fill-color': '#0080ff',
+                            'fill-opacity': 0.5
                         }
                     });
 
-                    map.addSource('index', {
-                        type: 'geojson',
-                        data: index
-                    });
-
-                    map.addLayer({
-                    });
-
                     populateTable();
-
-                })
+                });
             }
 
+            // Define function for populating table
+            function populateTable() {
+                table = document.getElementsByTagName("table")[0];
+                let row, cell1, cell2, cell3;
+                for (let i = 0; i < hospitals.features.length; i++) {
+                    row = table.insertRow(-1);
+                    cell1 = row.insertCell(0);
+                    cell2 = row.insertCell(1);
+                    cell3 = row.insertCell(2);
+                    cell1.innerHTML = hospitals.features[i].properties.FACILITY;
+                    cell2.innerHTML = hospitals.features[i].properties.ADDRESS;
+                    cell3.innerHTML = hospitals.features[i].properties.ACUTE_CARE;
+                }
+            }
+
+            geojsonFetch();
+
+            let btn = document.getElementsByTagName("button")[0];
+
+            btn.addEventListener('click', sortTable);
+
+            function sortTable(e) {
+                let table, rows, switching, i, x, y, shouldSwitch;
+                table = document.getElementsByTagName("table")[0];
+                switching = true;
+                while (switching) {
+                    switching = false;
+                    rows = table.rows;
+                    for (i = 1; i < (rows.length - 1); i++) {
+                        shouldSwitch = false;
+                        x = parseFloat(rows[i].getElementsByTagName("td")[1].innerHTML);
+                        y = parseFloat(rows[i + 1].getElementsByTagName("td")[1].innerHTML);
+                        if (x < y) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                    if (shouldSwitch) {
+                        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                        switching = true;
+                    }
+                }
+            }
         </script>
     </body>
 </html>
